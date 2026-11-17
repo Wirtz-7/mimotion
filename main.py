@@ -2,6 +2,7 @@
 import datetime
 import json
 import math
+import os
 import random
 import re
 import sys
@@ -147,7 +148,10 @@ class MiMotion():
             print(f'步数范围初始化失败: {e}，使用默认值')
             min_step, max_step = 10000, 19999
 
-        step = str(random.randint(min_step, max_step))
+        # FIXED_STEPS is populated by step_override.py; when absent preserve the original random algorithm.
+        fixed_steps = os.environ.get("FIXED_STEPS", "").strip()
+        step = str(int(fixed_steps)) if fixed_steps else str(random.randint(min_step, max_step))
+        print(f"本次步数模式: {'固定' if fixed_steps else '随机'}，目标步数: {step}")
 
         # ---------- 2. 登录 ----------
         login_token, userid, app_token = self.login()

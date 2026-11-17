@@ -10,9 +10,26 @@ on:
   watch:
     types: started
   workflow_dispatch:
+    inputs:
+      mode:
+        description: '步数模式：自动 / 仅本次 / 当天固定 / 恢复随机'
+        required: true
+        type: choice
+        default: auto
+        options:
+          - auto
+          - once
+          - today
+          - reset
+      steps:
+        description: '固定步数（仅 once / today 模式填写，范围 1～100000）'
+        required: false
+        type: string
 
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codes
@@ -27,6 +44,13 @@ jobs:
         with:
           python-version: '3.11'
           
+      - name: 处理临时步数设置
+        env:
+          STEP_MODE: ${{ inputs.mode || 'auto' }}
+          STEP_INPUT: ${{ inputs.steps || '' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 step_override.py
+
       - name: 开始
         run: |
           pip3 install requests pytz pycryptodome
